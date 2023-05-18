@@ -13,9 +13,9 @@ homepage = "https://github.com/usadson/enum-fields"
 repository = "https://github.com/usadson/enum-fields"
 
 [dependencies]
-syn = "*"
-proc-macro2 = "*"
-quote = "*"
+syn = "2.0.16"
+proc-macro2 = "1.0.58"
+quote = "1.0.27"
 
 [lib]
 proc-macro = true

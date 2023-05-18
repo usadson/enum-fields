@@ -1,12 +1,16 @@
 [package]
 name = "enum-fields"
-authors = ["Tristan Gerritsen <tristan@thewoosh.org>"]
-license = "MIT OR Apache-2.0"
-keywords = ["enum", "macros", "proc-macros"]
-version = "0.1.0"
-edition = "2021"
-repository = "https://github.com/usadson/enum-fields"
 description = "Quickly access shared enum fields in Rust."
+authors = ["Tristan Gerritsen <tristan@thewoosh.org>"]
+keywords = ["enum", "macros", "proc-macros"]
+
+edition = "2021"
+license = "MIT OR Apache-2.0"
+version = "0.1.0"
+
+documentation = "https://docs.rs/enum-fields"
+homepage = "https://github.com/usadson/enum-fields"
+repository = "https://github.com/usadson/enum-fields"
 
 [dependencies]
 syn = "*"

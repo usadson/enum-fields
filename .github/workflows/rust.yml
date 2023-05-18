@@ -1,0 +1,28 @@
+name: Rust
+
+on:
+  push:
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        profile: [dev, release]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      run: cargo build --verbose --profile ${{ matrix.profile }}
+    - name: Run Tests
+      run: cargo test --verbose --profile ${{ matrix.profile }}
+    - name: Upload Coverage Reports to Codecov
+      uses: codecov/codecov-action@v3

@@ -29,7 +29,7 @@
 //! `Entity::ceo()`.
 //!
 //! ```rs
-//! let company = Entity::Company {
+//! let mut company = Entity::Company {
 //!     name: "Apple".into(),
 //!     ceo: "Tim Cook".into()
 //! };
@@ -66,6 +66,14 @@
 //! // since a `Person` returns [`None`].
 //! assert_eq!(company.ceo(), Some(&"Tim Cook".into()));
 //! assert_eq!(person.ceo(), None);
+//!
+//! if let Some(ceo) = company.ceo_mut() {
+//!     ceo.push_str(" ?!");
+//! }
+//! assert_eq!(company.ceo(), Some(&"Tim Cook ?!".into()));
+//!
+//! *company.name_mut() = "Microsoft".into();
+//! assert_eq!(company.name(), "Microsoft");
 //! ```
 
 use std::collections::HashMap;
@@ -78,10 +86,10 @@ use syn;
 #[proc_macro_derive(EnumFields)]
 pub fn enum_fields_macro_derive(input: TokenStream) -> TokenStream {
     let ast = syn::parse(input).unwrap();
-    self::impl_for_input(&ast)
+    impl_for_input(&ast)
 }
 
-fn collect_available_fields<'input>(enum_data: &'input syn::DataEnum) -> HashMap<String, Vec<&'input syn::Field>> {
+fn collect_available_fields(enum_data: &syn::DataEnum) -> HashMap<String, Vec<&syn::Field>> {
     let mut fields = HashMap::new();
 
     for variant in &enum_data.variants {
@@ -122,6 +130,7 @@ fn impl_for_enum(ast: &syn::DeriveInput, enum_data: &syn::DataEnum) -> TokenStre
         let generics = &ast.generics;
         let field_type = &fields[0].ty;
         let field_name_ident = Ident::new(&field_name, Span::call_site());
+        let field_name_ident_mut = Ident::new(&format!("{field_name}_mut"), Span::call_site());
 
         let mut variants = proc_macro2::TokenStream::new();
 
@@ -148,11 +157,11 @@ fn impl_for_enum(ast: &syn::DeriveInput, enum_data: &syn::DataEnum) -> TokenStre
                 Some(variant_field_ident) => {
                     if field_present_everywhere {
                         variants.extend(quote! {
-                            Self::#name{ #variant_field_ident, .. } => & #variant_field_ident,
+                            Self::#name{ #variant_field_ident, .. } => #variant_field_ident,
                         });
                     } else {
                         variants.extend(quote! {
-                            Self::#name{ #variant_field_ident, .. } => Some(& #variant_field_ident),
+                            Self::#name{ #variant_field_ident, .. } => Some(#variant_field_ident),
                         });
                     }
                 }
@@ -188,11 +197,28 @@ fn impl_for_enum(ast: &syn::DeriveInput, enum_data: &syn::DataEnum) -> TokenStre
             }
         };
 
+        let ty_mut = if field_present_everywhere {
+            quote! {
+                &mut #field_type
+            }
+        } else {
+            quote! {
+                Option<&mut #field_type>
+            }
+        };
+
         data.extend(quote! {
             impl #generics #name #generics {
                 pub fn #field_name_ident(&self) -> #ty {
                     //! Get the property of this enum discriminant if it's available
-                    match &self {
+                    match self {
+                        #variants
+                    }
+                }
+
+                 pub fn #field_name_ident_mut(&mut self) -> #ty_mut {
+                    //! Get the mutable property of this enum discriminant if it's available
+                    match self {
                         #variants
                     }
                 }

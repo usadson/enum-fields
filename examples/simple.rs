@@ -28,7 +28,7 @@ pub enum Entity {
 }
 
 fn main() {
-    let company = Entity::Company {
+    let mut company = Entity::Company {
         name: "Apple".into(),
         ceo: "Tim Cook".into()
     };
@@ -53,4 +53,12 @@ fn main() {
     // since a `Person` returns [`None`].
     assert_eq!(company.ceo(), Some(&"Tim Cook".into()));
     assert_eq!(person.ceo(), None);
+
+    if let Some(ceo) = company.ceo_mut() {
+        ceo.push_str(" ?!");
+    }
+    assert_eq!(company.ceo(), Some(&"Tim Cook ?!".into()));
+
+    *company.name_mut() = "Microsoft".into();
+    assert_eq!(company.name(), "Microsoft");
 }

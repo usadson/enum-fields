@@ -13,7 +13,7 @@ homepage = "https://github.com/usadson/enum-fields"
 repository = "https://github.com/usadson/enum-fields"
 
 [dependencies]
-syn = "2.0.16"
+syn = { version = "2.0.16", features = ["extra-traits"] }
 proc-macro2 = "1.0.58"
 quote = "1.0.27"
 

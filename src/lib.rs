@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Tristan Gerritsen <tristan@thewoosh.org>
+// Copyright (C) 2023 - 2025 Tristan Gerritsen <tristan@thewoosh.org>
 // All Rights Reserved.
 
 //! # enum-fields
@@ -125,7 +125,8 @@ fn impl_for_enum(ast: &syn::DeriveInput, enum_data: &syn::DataEnum) -> TokenStre
 
 
     for (field_name, fields) in fields {
-        let field_present_everywhere = fields.len() == enum_data.variants.len();
+        let field_present_everywhere = fields.len() == enum_data.variants.len()
+            && fields.iter().all(|x| x.ty == fields[0].ty);
 
         let generics = &ast.generics;
         let field_type = &fields[0].ty;
@@ -137,7 +138,7 @@ fn impl_for_enum(ast: &syn::DeriveInput, enum_data: &syn::DataEnum) -> TokenStre
         for variant in &enum_data.variants {
             let name = &variant.ident;
 
-            let variant_field_ident = variant.fields.iter()
+            let variant_field = variant.fields.iter()
                 .find(|variant_field| {
                     if let Some(variant_field_ident) = &variant_field.ident {
                         if variant_field_ident.to_string() == field_name {
@@ -148,22 +149,15 @@ fn impl_for_enum(ast: &syn::DeriveInput, enum_data: &syn::DataEnum) -> TokenStre
                     } else {
                         false
                     }
-                })
-                .map(|field| {
-                    field.ident.as_ref().unwrap()
                 });
+
+            let variant_field_ident = variant_field.as_ref().and_then(|field| field.ident.as_ref());
 
             match variant_field_ident {
                 Some(variant_field_ident) => {
-                    if field_present_everywhere {
-                        variants.extend(quote! {
-                            Self::#name{ #variant_field_ident, .. } => #variant_field_ident,
-                        });
-                    } else {
-                        variants.extend(quote! {
-                            Self::#name{ #variant_field_ident, .. } => Some(#variant_field_ident),
-                        });
-                    }
+                    variants.extend(quote! {
+                        Self::#name{ #variant_field_ident, .. } => (#variant_field_ident).into(),
+                    });
                 }
 
                 None => {
